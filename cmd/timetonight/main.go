@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
+	"github.com/blachniet/timetonight"
+	"github.com/blachniet/timetonight/mock"
 	"gopkg.in/dougEfresh/gtoggl.v8"
 )
 
@@ -66,4 +69,13 @@ func main() {
 	} else {
 		fmt.Println("=== You're done!")
 	}
+
+	timer := &mock.Timer{}
+	persister := &mock.Persister{}
+	hf := &HandlerFactory{timer, persister, nil}
+	http.Handle("/", h.H(getIndex))
+	http.ListenAndServe(":3000", nil)
+}
+
+func getIndex(t timetonight.Timer, p timetonight.Persister, w http.ResponseWriter, r *http.Request) {
 }
