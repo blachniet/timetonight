@@ -72,10 +72,22 @@ func main() {
 
 	timer := &mock.Timer{}
 	persister := &mock.Persister{}
-	hf := &HandlerFactory{timer, persister, nil}
-	http.Handle("/", h.H(getIndex))
+	ren, err := timetonight.NewDefaultRenderer("./templates/*.tmpl", true)
+	if err != nil {
+		log.Fatalf("Err creating renderer: %+v", err)
+	}
+
+	hf := &timetonight.HandlerFactory{
+		Timer:     timer,
+		Persister: persister,
+		Renderer:  ren,
+	}
+
+	http.Handle("/", hf.H(getIndex))
 	http.ListenAndServe(":3000", nil)
 }
 
-func getIndex(t timetonight.Timer, p timetonight.Persister, w http.ResponseWriter, r *http.Request) {
+func getIndex(t timetonight.Timer, p timetonight.Persister, ren timetonight.Renderer,
+	w http.ResponseWriter, r *http.Request) (int, error) {
+	return http.StatusOK, ren.Render(w, "index.tmpl", nil)
 }
