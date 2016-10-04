@@ -24,8 +24,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		default:
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
-	} else {
-		w.WriteHeader(status)
 	}
 }
 
