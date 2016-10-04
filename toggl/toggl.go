@@ -25,8 +25,8 @@ func NewTimer(token string) (*Timer, error) {
 
 // IsRunning returns whether a timer is currently running
 // on Toggl.
-func (s *Timer) IsRunning() (bool, error) {
-	entries, err := s.c.TimeentryClient.List()
+func (t *Timer) IsRunning() (bool, error) {
+	entries, err := t.c.TimeentryClient.List()
 	if err != nil {
 		return false, errors.Wrap(err, "Err retrieving time entries from Toggl")
 	}
@@ -42,6 +42,26 @@ func (s *Timer) IsRunning() (bool, error) {
 
 // LoggedToday returns the amount of time logged today in Toggl
 // including the currently running timer (if applicable).
-func (s *Timer) LoggedToday() (time.Duration, error) {
-	panic("NotImplemented")
+//
+// TODO: Handle different time zones
+func (t *Timer) LoggedToday() (time.Duration, error) {
+	var dur time.Duration
+	entries, err := t.c.TimeentryClient.List()
+	if err != nil {
+		return dur, errors.Wrap(err, "Err retrieving time entries from Toggl")
+	}
+
+	nowYear, nowMonth, nowDay := time.Now().Local().Date()
+	for _, e := range entries {
+		startYear, startMonth, startDay := e.Start.Local().Date()
+		if nowYear == startYear && nowMonth == startMonth && nowDay == startDay {
+			if e.Duration > 0 {
+				dur += time.Duration(e.Duration) * time.Second
+			} else {
+				dur += (time.Duration(time.Now().UTC().Unix()) * time.Second) + (time.Duration(e.Duration) * time.Second)
+			}
+		}
+	}
+
+	return dur, nil
 }
