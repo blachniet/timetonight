@@ -3,9 +3,19 @@
 	"GoVersion": "go1.7",
 	"GodepVersion": "v74",
 	"Packages": [
-		"./..."
+		"./cmd/..."
 	],
 	"Deps": [
+		{
+			"ImportPath": "github.com/boltdb/bolt",
+			"Comment": "v1.3.0-19-gfff57c1",
+			"Rev": "fff57c100f4dea1905678da7e90d92429dff2904"
+		},
+		{
+			"ImportPath": "github.com/dgrijalva/jwt-go",
+			"Comment": "v3.0.0-8-g24c63f5",
+			"Rev": "24c63f56522a87ec5339cc3567883f1039378fdb"
+		},
 		{
 			"ImportPath": "github.com/hashicorp/golang-lru",
 			"Rev": "0a025b7e63adc15a622f29b0b2c4c3848243bbf6"
@@ -15,9 +25,80 @@
 			"Rev": "0a025b7e63adc15a622f29b0b2c4c3848243bbf6"
 		},
 		{
+			"ImportPath": "github.com/labstack/echo",
+			"Comment": "2.1-3-g9c0e9d6",
+			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+		},
+		{
+			"ImportPath": "github.com/labstack/echo/context",
+			"Comment": "2.1-3-g9c0e9d6",
+			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+		},
+		{
+			"ImportPath": "github.com/labstack/echo/engine",
+			"Comment": "2.1-3-g9c0e9d6",
+			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+		},
+		{
+			"ImportPath": "github.com/labstack/echo/engine/standard",
+			"Comment": "2.1-3-g9c0e9d6",
+			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+		},
+		{
+			"ImportPath": "github.com/labstack/echo/log",
+			"Comment": "2.1-3-g9c0e9d6",
+			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+		},
+		{
+			"ImportPath": "github.com/labstack/echo/middleware",
+			"Comment": "2.1-3-g9c0e9d6",
+			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+		},
+		{
+			"ImportPath": "github.com/labstack/gommon/bytes",
+			"Comment": "v0.0.3-64-gf3b1a1b",
+			"Rev": "f3b1a1b3bd4726161e1200863d278df7da5e66ff"
+		},
+		{
+			"ImportPath": "github.com/labstack/gommon/color",
+			"Comment": "v0.0.3-64-gf3b1a1b",
+			"Rev": "f3b1a1b3bd4726161e1200863d278df7da5e66ff"
+		},
+		{
+			"ImportPath": "github.com/labstack/gommon/log",
+			"Comment": "v0.0.3-64-gf3b1a1b",
+			"Rev": "f3b1a1b3bd4726161e1200863d278df7da5e66ff"
+		},
+		{
+			"ImportPath": "github.com/labstack/gommon/random",
+			"Comment": "v0.0.3-64-gf3b1a1b",
+			"Rev": "f3b1a1b3bd4726161e1200863d278df7da5e66ff"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-colorable",
+			"Comment": "v0.0.6-6-g6c903ff",
+			"Rev": "6c903ff4aa50920ca86087a280590b36b3152b9c"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-isatty",
+			"Rev": "7fcbc72f853b92b5720db4a6b8482be612daef24"
+		},
+		{
 			"ImportPath": "github.com/pkg/errors",
 			"Comment": "v0.8.0",
 			"Rev": "645ef00459ed84a119197bfb8d8205042c6df63d"
+		},
+		{
+			"ImportPath": "github.com/valyala/fasttemplate",
+			"Rev": "3b874956e03f1636d171bda64b130f9135f42cff"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "51854aba4682903632d14998d47781fe34e62a02"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "8d1157a435470616f975ff9bb013bea8d0962067"
 		},
 		{
 			"ImportPath": "gopkg.in/dougEfresh/gtoggl.v8",
