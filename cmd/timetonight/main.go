@@ -3,64 +3,112 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 	"time"
 
-	"github.com/blachniet/timetonight"
-	"github.com/blachniet/timetonight/mock"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine/standard"
+	"github.com/labstack/echo/middleware"
+	"github.com/pkg/errors"
+
+	"github.com/blachniet/timetonight/bolt"
+	"github.com/blachniet/timetonight/context"
 	"github.com/blachniet/timetonight/toggl"
 )
 
 func main() {
-	togglToken := os.Getenv("TOGGL_API_TOKEN")
-
-	persister := &mock.Persister{}
-	persister.TogglAPITokenFn = func() (string, error) {
-		return togglToken, nil
-	}
-	persister.TimePerDayFn = func() (time.Duration, error) {
-		return time.Hour * 9, nil
-	}
-
-	timer, err := toggl.NewTimer(togglToken)
+	persister := bolt.NewPersister("/Users/brian.lachniet/timetonight.db")
+	err := persister.Open()
 	if err != nil {
-		log.Fatalf("Err creating Toggl timer: %+v", err)
+		log.Fatalf("Err opening persister: %+v", err)
 	}
+	defer persister.Close()
 
-	ren, err := timetonight.NewDefaultRenderer("./templates/*.tmpl", true)
-	if err != nil {
-		log.Fatalf("Err creating renderer: %+v", err)
-	}
+	// Echo Setup
+	e := echo.New()
+	e.SetDebug(true)
+	e.SetRenderer(&renderer{
+		debug:   e.Debug(),
+		pattern: "./templates/*.tmpl",
+	})
 
-	hf := &timetonight.HandlerFactory{
-		Timer:     timer,
-		Persister: persister,
-		Renderer:  ren,
-	}
+	// Echo Middleware
+	e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(middleware.Recover())
+	e.Use(context.Use(nil, persister))
+	e.Use(checkConfigurationRequired)
 
-	http.Handle("/", hf.H(getIndex))
-	http.ListenAndServe(":3000", nil)
+	// Echo Handlers
+	e.Get("/", getIndex)
+	e.Get("/configure", getConfigure)
+	e.Post("/configure", postConfigure)
+
+	// Echo Run
+	e.Run(standard.New(":3000"))
 }
 
-func getIndex(t timetonight.Timer, p timetonight.Persister, ren timetonight.Renderer,
-	w http.ResponseWriter, r *http.Request) (int, error) {
+func checkConfigurationRequired(h echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		cc := c.(*context.Context)
+		if c.Path() != "/configure" {
+			if cc.Timer() == nil {
+				return c.Redirect(http.StatusFound, "/configure")
+			}
+		}
+		return h(c)
+	}
+}
 
-	timePerDay, err := p.TimePerDay()
+func getConfigure(c echo.Context) error {
+	cc := c.(*context.Context)
+	timePerDay, err := cc.Persister().TimePerDay()
 	if err != nil {
-		log.Printf("Failed to retrieve time per day: %+v", err)
-		return http.StatusInternalServerError, err
+		return errors.Wrap(err, "Err getting time per day")
 	}
 
-	durToday, err := t.LoggedToday()
+	togglAPIToken, err := cc.Persister().TogglAPIToken()
 	if err != nil {
-		log.Printf("Failed to retrieve time logged today: %+v", err)
-		return http.StatusInternalServerError, err
+		return errors.Wrap(err, "Err getting Toggl API token")
 	}
 
-	running, err := t.IsRunning()
+	return c.Render(http.StatusOK, "configure.tmpl", struct {
+		HoursPerDay   int
+		TogglAPIToken string
+	}{int(timePerDay / time.Hour), togglAPIToken})
+}
+
+func postConfigure(c echo.Context) error {
+	cc := c.(*context.Context)
+	log.Println("Post configure")
+	togglAPIToken := c.FormValue("togglAPIToken")
+	if togglAPIToken != "" {
+		log.Println("Setting token ", togglAPIToken)
+		t, err := toggl.NewTimer(togglAPIToken)
+		if err != nil {
+			return errors.Wrap(err, "Err creating toggl timer")
+		}
+		cc.SetTimer(t)
+	} else {
+		cc.SetTimer(nil)
+	}
+
+	return c.Redirect(http.StatusFound, "/")
+}
+
+func getIndex(c echo.Context) error {
+	cc := c.(*context.Context)
+	timePerDay, err := cc.Persister().TimePerDay()
 	if err != nil {
-		log.Printf("Failed to retrieve whether timer is running: %+v", err)
-		return http.StatusInternalServerError, err
+		return errors.Wrap(err, "Failed to retrieve time per day")
+	}
+
+	durToday, err := cc.Timer().LoggedToday()
+	if err != nil {
+		return errors.Wrap(err, "Failed to retrieve time logged today")
+	}
+
+	running, err := cc.Timer().IsRunning()
+	if err != nil {
+		return errors.Wrap(err, "Failed to retrieve whether timer is running")
 	}
 
 	hours := durToday / time.Hour
@@ -72,5 +120,5 @@ func getIndex(t timetonight.Timer, p timetonight.Persister, ren timetonight.Rend
 		TimerRunning  bool
 	}{int(timePerDay / time.Hour), int(hours), int(minutes), running}
 
-	return http.StatusOK, ren.Render(w, "index.tmpl", data)
+	return c.Render(http.StatusOK, "index.tmpl", data)
 }
