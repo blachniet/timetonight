@@ -29,9 +29,7 @@ func (c *homeController) getIndex(ctx echo.Context) error {
 
 	var finishTime time.Time
 	remaining := c.App.TimePerDay - logged
-	if remaining > 0 {
-		finishTime = time.Now().Local().Add(remaining)
-	}
+	finishTime = time.Now().Local().Add(remaining)
 
 	data := struct {
 		TimerRunning  bool

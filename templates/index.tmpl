@@ -1,29 +1,60 @@
-<html>
-    <body>
-        <h1>Time Tonight</h1>
-        <table>
-            <tr>
-                <th>Timer Running</th>
-                <td>{{.TimerRunning}}</td>
-            </tr>
-            <tr>
-                <th>Time Per Day</th>
-                <td>{{.TimePerDay}}</td>
-            </tr>
-            <tr>
-                <th>Logged</th>
-                <td>{{.LoggedTime}}</td>
-            </tr>
-            <tr>
-                <th>Remaining</th>
-                <td>{{.RemainingTime}}</td>
-            </tr>
+{{template "_head.tmpl"}}
+<div class="container">
+    <div class="row">
+        <div class="col-sm-4">
+        </div>
+        <div class="col-sm-4">
+            <h4 style="text-align: center;"><i class="fa fa-clock-o"></i>&nbsp;Time Tonight</h4>
+            <hr/>
+            
             {{if .TimerRunning}}
-            <tr>
-                <th>Estimated Finish Time</th>
-                <td>{{.FinishTime}}</td>
-            </tr>
+                <h1 title="Your timer is running..."
+                    style="text-align: center; margin-top:2em; margin-bottom: 2em;">
+                    <i class="fa fa-circle-o-notch fa-spin"></i>
+                    <small> Done @ </small>
+                    {{.FinishTime.Format "3:04"}}
+                    <small>{{.FinishTime.Format "MST"}}</small>
+                </h1>
+                {{if lt .RemainingTime 0}}
+                <div class="alert alert-warning" role="alert">
+                    <i class="fa fa-warning"></i>Your timer is running, but you've reached your goal: 
+                    <a href="https://www.toggl.com/app/timer">stop your timer.</a>
+                </div>
+                {{end}}
+            {{else}}
+                {{if le .RemainingTime 0}}
+                    <h1
+                        style="text-align: center; margin-top:2em; margin-bottom: 2em;">
+                        You're Done!</h1>
+                {{else}}
+                    <h1
+                        style="text-align: center; margin-top:2em; margin-bottom: 2em;">
+                        {{.RemainingTime}} <small>left</small></h1>
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fa fa-warning"></i>Your timer is <strong>NOT</strong> running!
+                        <a href="https://www.toggl.com/app/timer">Start your timer.</a>
+                    </div>
+                {{end}}
             {{end}}
-        </table>
-    </body>
-</html>
+            
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <th scope="row">Goal</th>
+                        <td>{{.TimePerDay}}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Logged Today</th>
+                        <td>{{.LoggedTime}}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Remaining</th>
+                        <td>{{.RemainingTime}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-sm-4">
+        </div>
+</div>
+{{template "_foot.tmpl"}}
