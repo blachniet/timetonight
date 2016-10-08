@@ -2,7 +2,6 @@
 TogglAPIToken = ""
 HoursPerDay = 8
 
-Host = ""
 Port = 3000
 Debug = false
 TemplatesGlobPattern = "./templates/*.tmpl"
