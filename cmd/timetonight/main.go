@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"html/template"
 	"log"
 	"net/http"
 
@@ -53,6 +54,16 @@ func main() {
 	}
 	defer persister.Close()
 
+	tmpls, err := template.ParseGlob(*tmplPattern)
+	if err != nil {
+		log.Fatalf("Failed to parse templates: %+v", err)
+	}
+	renderer := &renderer{
+		t:       tmpls,
+		debug:   *debug,
+		pattern: *tmplPattern,
+	}
+
 	app := &app{
 		Debug:     debug != nil && *debug,
 		Timer:     nil,
@@ -62,10 +73,7 @@ func main() {
 	// Echo Setup
 	e := echo.New()
 	e.SetDebug(app.Debug)
-	e.SetRenderer(&renderer{
-		debug:   app.Debug,
-		pattern: *tmplPattern,
-	})
+	e.SetRenderer(renderer)
 
 	// Echo Middleware
 	e.Pre(middleware.RemoveTrailingSlash())
