@@ -32,11 +32,11 @@ func (c *homeController) getIndex(ctx echo.Context) error {
 	finishTime = time.Now().Local().Add(remaining)
 
 	data := struct {
-		TimerRunning  bool
-		TimePerDay    time.Duration
-		LoggedTime    time.Duration
-		RemainingTime time.Duration
-		FinishTime    time.Time
+		TimerRunning bool
+		TimePerDay   time.Duration
+		Logged       time.Duration
+		Remaining    time.Duration
+		FinishTime   time.Time
 	}{
 		running,
 		c.App.TimePerDay,

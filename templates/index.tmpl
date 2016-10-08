@@ -15,21 +15,21 @@
                     {{.FinishTime.Format "3:04"}}
                     <small>{{.FinishTime.Format "MST"}}</small>
                 </h1>
-                {{if lt .RemainingTime 0}}
+                {{if lt .Remaining 0}}
                 <div class="alert alert-warning" role="alert">
                     <i class="fa fa-warning"></i>Your timer is running, but you've reached your goal: 
                     <a href="https://www.toggl.com/app/timer">stop your timer.</a>
                 </div>
                 {{end}}
             {{else}}
-                {{if le .RemainingTime 0}}
+                {{if le .Remaining 0}}
                     <h1
                         style="text-align: center; margin-top:2em; margin-bottom: 2em;">
                         You're Done!</h1>
                 {{else}}
                     <h1
                         style="text-align: center; margin-top:2em; margin-bottom: 2em;">
-                        {{.RemainingTime}} <small>left</small></h1>
+                        {{.Remaining}} <small>left</small></h1>
                     <div class="alert alert-warning" role="alert">
                         <i class="fa fa-warning"></i>Your timer is <strong>NOT</strong> running!
                         <a href="https://www.toggl.com/app/timer">Start your timer.</a>
@@ -45,11 +45,11 @@
                     </tr>
                     <tr>
                         <th scope="row">Logged Today</th>
-                        <td>{{.LoggedTime}}</td>
+                        <td>{{.Logged}}</td>
                     </tr>
                     <tr>
                         <th scope="row">Remaining</th>
-                        <td>{{.RemainingTime}}</td>
+                        <td>{{.Remaining}}</td>
                     </tr>
                 </tbody>
             </table>
