@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"html/template"
 	"log"
 	"time"
@@ -18,6 +19,8 @@ func main() {
 	viper.SetDefault("TemplatesGlobPattern", "./templates/*.tmpl")
 	viper.SetDefault("HoursPerDay", 8)
 	viper.SetDefault("TogglAPIToken", "")
+	viper.SetDefault("Host", "")
+	viper.SetDefault("Port", 3000)
 
 	viper.SetConfigName("config")
 	viper.AddConfigPath("/etc/timetonight")
@@ -84,5 +87,5 @@ func main() {
 	homeController.setup(e)
 
 	// Echo Run
-	e.Run(standard.New(":3000"))
+	e.Run(standard.New(fmt.Sprintf("%v:%v", viper.GetString("Host"), viper.GetInt("Port"))))
 }
