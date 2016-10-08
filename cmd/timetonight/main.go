@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
@@ -44,8 +46,16 @@ func (a *app) trySetTimer() (bool, error) {
 func main() {
 	debug := flag.Bool("debug", false, "Enables debugging")
 	tmplPattern := flag.String("templates", "./templates/*.tmpl", "Glob pattern for templates")
-	dbPath := flag.String("db", "/Users/brian.lachniet/timetonight.db", "Path to bolt database file")
+	dbPath := flag.String("db", "./timetonight.db", "Path to bolt database file")
 	flag.Parse()
+
+	dbDir := filepath.Dir(*dbPath)
+	if dbDir != "" {
+		err := os.MkdirAll(dbDir, 0777)
+		if err != nil {
+			log.Fatalf("Err creating database directory")
+		}
+	}
 
 	persister := bolt.NewPersister(*dbPath)
 	err := persister.Open()
