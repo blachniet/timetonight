@@ -36,6 +36,12 @@ func (c *homeController) getIndex(ctx echo.Context) error {
 		return errors.Wrap(err, "Failed to retrieve whether timer is running")
 	}
 
+	var finishTime time.Time
+	durRemaining := timePerDay - durToday
+	if durRemaining > 0 {
+		finishTime = time.Now().Local().Add(durRemaining)
+	}
+
 	hours := durToday / time.Hour
 	minutes := (durToday - (hours * time.Hour)) / time.Minute
 	data := struct {
@@ -43,7 +49,8 @@ func (c *homeController) getIndex(ctx echo.Context) error {
 		LoggedHours   int
 		LoggedMinutes int
 		TimerRunning  bool
-	}{int(timePerDay / time.Hour), int(hours), int(minutes), running}
+		FinishTime    time.Time
+	}{int(timePerDay / time.Hour), int(hours), int(minutes), running, finishTime}
 
 	return ctx.Render(http.StatusOK, "index.tmpl", data)
 }
