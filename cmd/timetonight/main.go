@@ -4,105 +4,80 @@ import (
 	"flag"
 	"html/template"
 	"log"
-	"net/http"
-	"os"
-	"path/filepath"
+	"time"
 
+	"github.com/blachniet/timetonight/toggl"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
-	"github.com/pkg/errors"
-
-	"github.com/blachniet/timetonight"
-	"github.com/blachniet/timetonight/bolt"
-	"github.com/blachniet/timetonight/toggl"
+	"github.com/spf13/viper"
 )
 
-type app struct {
-	Debug     bool
-	Timer     timetonight.Timer
-	Persister timetonight.Persister
-}
+func main() {
+	viper.SetDefault("Debug", false)
+	viper.SetDefault("TemplatesGlobPattern", "./templates/*.tmpl")
+	viper.SetDefault("HoursPerDay", 8)
+	viper.SetDefault("TogglAPIToken", "")
 
-func (a *app) trySetTimer() (bool, error) {
-	togglAPIToken, err := a.Persister.TogglAPIToken()
+	viper.SetConfigName("config")
+	viper.AddConfigPath("/etc/timetonight")
+	viper.AddConfigPath("$HOME/.timetonight")
+	viper.AddConfigPath(".")
+
+	// Configure apply flag overrides
+	flagConfigPath := flag.String("config", "", "Path to config file. By default, searches for config file named 'config.[toml|yaml|json]' at '/etc/timetonight/', '$HOME/.timetonight/' and './'")
+	flagDebug := flag.Bool("debug", false, "Enables debugging. Overrides any setting in config file.")
+	flag.Parse()
+	if *flagConfigPath != "" {
+		viper.SetConfigFile(*flagConfigPath)
+	}
+	if *flagDebug {
+		viper.Set("Debug", *flagDebug)
+	}
+
+	err := viper.ReadInConfig()
 	if err != nil {
-		return false, errors.Wrap(err, "Err retrieving Toggl API token")
+		log.Fatal(err)
 	}
 
+	tmplPattern := viper.GetString("TemplatesGlobPattern")
+	tmpls, err := template.ParseGlob(tmplPattern)
+	if err != nil {
+		log.Fatalf("Failed to parse templates at %q: %+v", tmplPattern, err)
+	}
+
+	togglAPIToken := viper.GetString("TogglAPIToken")
 	if togglAPIToken == "" {
-		return false, nil
+		log.Fatal("TogglAPIToken not set")
 	}
-
 	timer, err := toggl.NewTimer(togglAPIToken)
 	if err != nil {
-		return false, errors.Wrap(err, "Err connecting Toggl timer")
+		log.Printf("Unable to connect to Toggl with API token: %q\n", togglAPIToken)
+		log.Fatalf("%+v", err)
 	}
 
-	a.Timer = timer
-	return true, nil
-}
-
-func main() {
-	debug := flag.Bool("debug", false, "Enables debugging")
-	tmplPattern := flag.String("templates", "./templates/*.tmpl", "Glob pattern for templates")
-	dbPath := flag.String("db", "./timetonight.db", "Path to bolt database file")
-	flag.Parse()
-
-	dbDir := filepath.Dir(*dbPath)
-	if dbDir != "" {
-		err := os.MkdirAll(dbDir, 0777)
-		if err != nil {
-			log.Fatalf("Err creating database directory")
-		}
-	}
-
-	persister := bolt.NewPersister(*dbPath)
-	err := persister.Open()
-	if err != nil {
-		log.Fatalf("Err opening persister: %+v", err)
-	}
-	defer persister.Close()
-
-	tmpls, err := template.ParseGlob(*tmplPattern)
-	if err != nil {
-		log.Fatalf("Failed to parse templates: %+v", err)
-	}
-	renderer := &renderer{
-		t:       tmpls,
-		debug:   *debug,
-		pattern: *tmplPattern,
+	hrsPerDay := viper.GetFloat64("HoursPerDay")
+	timePerDay := time.Duration(hrsPerDay * float64(time.Hour))
+	if timePerDay <= 0 {
+		log.Fatal("Invalid 'HoursPerDay'. Must round to >0")
 	}
 
 	app := &app{
-		Debug:     debug != nil && *debug,
-		Timer:     nil,
-		Persister: persister,
+		Debug:            viper.GetBool("Debug"),
+		Timer:            timer,
+		Templ:            tmpls,
+		TemplGlobPattern: viper.GetString("TemplatesGlobPattern"),
+		TimePerDay:       timePerDay,
 	}
 
 	// Echo Setup
 	e := echo.New()
 	e.SetDebug(app.Debug)
-	e.SetRenderer(renderer)
+	e.SetRenderer(app)
 
 	// Echo Middleware
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
-	e.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
-		// Redirect to configuration page if not configured
-		return func(c echo.Context) error {
-			if c.Path() != "/configure" && app.Timer == nil {
-				ok, err := app.trySetTimer()
-				if err != nil {
-					errors.Wrap(err, "Error setting timer")
-				}
-				if !ok {
-					return c.Redirect(http.StatusFound, "/configure")
-				}
-			}
-			return h(c)
-		}
-	})
 
 	// Controllers
 	homeController := &homeController{app}

@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/labstack/echo"
@@ -16,16 +14,9 @@ type homeController struct {
 
 func (c *homeController) setup(e *echo.Echo) {
 	e.Get("/", c.getIndex)
-	e.Get("/configure", c.getConfigure)
-	e.Post("/configure", c.postConfigure)
 }
 
 func (c *homeController) getIndex(ctx echo.Context) error {
-	timePerDay, err := c.App.Persister.TimePerDay()
-	if err != nil {
-		return errors.Wrap(err, "Failed to retrieve time per day")
-	}
-
 	durToday, err := c.App.Timer.LoggedToday()
 	if err != nil {
 		return errors.Wrap(err, "Failed to retrieve time logged today")
@@ -37,7 +28,7 @@ func (c *homeController) getIndex(ctx echo.Context) error {
 	}
 
 	var finishTime time.Time
-	durRemaining := timePerDay - durToday
+	durRemaining := c.App.TimePerDay - durToday
 	if durRemaining > 0 {
 		finishTime = time.Now().Local().Add(durRemaining)
 	}
@@ -50,44 +41,13 @@ func (c *homeController) getIndex(ctx echo.Context) error {
 		LoggedMinutes int
 		TimerRunning  bool
 		FinishTime    time.Time
-	}{int(timePerDay / time.Hour), int(hours), int(minutes), running, finishTime}
+	}{
+		int(c.App.TimePerDay / time.Hour),
+		int(hours),
+		int(minutes),
+		running,
+		finishTime,
+	}
 
 	return ctx.Render(http.StatusOK, "index.tmpl", data)
-}
-
-func (c *homeController) getConfigure(ctx echo.Context) error {
-	timePerDay, err := c.App.Persister.TimePerDay()
-	if err != nil {
-		return errors.Wrap(err, "Err getting time per day")
-	}
-
-	togglAPIToken, err := c.App.Persister.TogglAPIToken()
-	if err != nil {
-		return errors.Wrap(err, "Err getting Toggl API token")
-	}
-
-	return ctx.Render(http.StatusOK, "configure.tmpl", struct {
-		HoursPerDay   int
-		TogglAPIToken string
-	}{int(timePerDay / time.Hour), togglAPIToken})
-}
-
-func (c *homeController) postConfigure(ctx echo.Context) error {
-	hrsPerDayStr := ctx.FormValue("hoursPerDay")
-	hrsPerDay, err := strconv.ParseInt(hrsPerDayStr, 10, 0)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprint("Err converting hoursPerDay to int: ", hrsPerDayStr))
-	}
-
-	err = c.App.Persister.SetTimePerDay(time.Duration(hrsPerDay) * time.Hour)
-	if err != nil {
-		return errors.Wrap(err, "Err setting time per day")
-	}
-
-	err = c.App.Persister.SetTogglAPIToken(ctx.FormValue("togglAPIToken"))
-	if err != nil {
-		return errors.Wrap(err, "Error setting Toggl API token")
-	}
-
-	return ctx.Redirect(http.StatusFound, "/")
 }

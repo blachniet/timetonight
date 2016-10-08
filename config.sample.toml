@@ -1,0 +1,7 @@
+# You can find your API token at https://toggl.com/app/profile
+ToggleAPIToken = ""
+HoursPerDay = 8
+
+# Advanced
+Debug = false
+TemplatesGlobPattern = "./templates/*.tmpl"
