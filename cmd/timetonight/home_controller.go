@@ -17,7 +17,7 @@ func (c *homeController) setup(e *echo.Echo) {
 }
 
 func (c *homeController) getIndex(ctx echo.Context) error {
-	durToday, err := c.App.Timer.LoggedToday()
+	logged, err := c.App.Timer.LoggedToday()
 	if err != nil {
 		return errors.Wrap(err, "Failed to retrieve time logged today")
 	}
@@ -28,24 +28,22 @@ func (c *homeController) getIndex(ctx echo.Context) error {
 	}
 
 	var finishTime time.Time
-	durRemaining := c.App.TimePerDay - durToday
-	if durRemaining > 0 {
-		finishTime = time.Now().Local().Add(durRemaining)
+	remaining := c.App.TimePerDay - logged
+	if remaining > 0 {
+		finishTime = time.Now().Local().Add(remaining)
 	}
 
-	hours := durToday / time.Hour
-	minutes := (durToday - (hours * time.Hour)) / time.Minute
 	data := struct {
-		HoursPerDay   int
-		LoggedHours   int
-		LoggedMinutes int
 		TimerRunning  bool
+		TimePerDay    time.Duration
+		LoggedTime    time.Duration
+		RemainingTime time.Duration
 		FinishTime    time.Time
 	}{
-		int(c.App.TimePerDay / time.Hour),
-		int(hours),
-		int(minutes),
 		running,
+		c.App.TimePerDay,
+		logged,
+		remaining,
 		finishTime,
 	}
 

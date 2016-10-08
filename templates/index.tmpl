@@ -3,21 +3,27 @@
         <h1>Time Tonight</h1>
         <table>
             <tr>
-                <th>Time Per Day</th>
-                <td>{{.HoursPerDay}} hrs</td>
-            </tr>
-            <tr>
-                <th>Logged Today</th>
-                <td>{{.LoggedHours}}:{{.LoggedMinutes}}</td>
-            </tr>
-            <tr>
                 <th>Timer Running</th>
                 <td>{{.TimerRunning}}</td>
             </tr>
             <tr>
-                <th>Estimated Done Time</th>
+                <th>Time Per Day</th>
+                <td>{{.TimePerDay}}</td>
+            </tr>
+            <tr>
+                <th>Logged</th>
+                <td>{{.LoggedTime}}</td>
+            </tr>
+            <tr>
+                <th>Remaining</th>
+                <td>{{.RemainingTime}}</td>
+            </tr>
+            {{if .TimerRunning}}
+            <tr>
+                <th>Estimated Finish Time</th>
                 <td>{{.FinishTime}}</td>
             </tr>
+            {{end}}
         </table>
     </body>
 </html>
