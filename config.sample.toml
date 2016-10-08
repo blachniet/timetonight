@@ -1,5 +1,5 @@
 # You can find your API token at https://toggl.com/app/profile
-ToggleAPIToken = ""
+TogglAPIToken = ""
 HoursPerDay = 8
 
 # Advanced
