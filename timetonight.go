@@ -8,4 +8,6 @@ type Timer interface {
 	IsRunning() (bool, error)
 	// LoggedToday returns the amount of time that has been logged today.
 	LoggedToday() (time.Duration, error)
+	// Gets the location for the user associated with the timer.
+	Location() (*time.Location, error)
 }

@@ -27,9 +27,14 @@ func (c *homeController) getIndex(ctx echo.Context) error {
 		return errors.Wrap(err, "Failed to retrieve whether timer is running")
 	}
 
+	loc, err := c.App.Timer.Location()
+	if err != nil {
+		return errors.Wrap(err, "Error getting time zone info")
+	}
+
 	var finishTime time.Time
 	remaining := c.App.TimePerDay - logged
-	finishTime = time.Now().Local().Add(remaining)
+	finishTime = time.Now().In(loc).Add(remaining)
 
 	data := struct {
 		TimerRunning bool

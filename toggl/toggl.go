@@ -42,8 +42,6 @@ func (t *Timer) IsRunning() (bool, error) {
 
 // LoggedToday returns the amount of time logged today in Toggl
 // including the currently running timer (if applicable).
-//
-// TODO: Handle different time zones
 func (t *Timer) LoggedToday() (time.Duration, error) {
 	var dur time.Duration
 	entries, err := t.c.TimeentryClient.List()
@@ -51,9 +49,14 @@ func (t *Timer) LoggedToday() (time.Duration, error) {
 		return dur, errors.Wrap(err, "Err retrieving time entries from Toggl")
 	}
 
-	nowYear, nowMonth, nowDay := time.Now().Local().Date()
+	loc, err := t.Location()
+	if err != nil {
+		return dur, errors.Wrap(err, "Err getting location for Toggl user")
+	}
+
+	nowYear, nowMonth, nowDay := time.Now().In(loc).Date()
 	for _, e := range entries {
-		startYear, startMonth, startDay := e.Start.Local().Date()
+		startYear, startMonth, startDay := e.Start.In(loc).Date()
 		if nowYear == startYear && nowMonth == startMonth && nowDay == startDay {
 			if e.Duration > 0 {
 				dur += time.Duration(e.Duration) * time.Second
@@ -64,4 +67,16 @@ func (t *Timer) LoggedToday() (time.Duration, error) {
 	}
 
 	return dur, nil
+}
+
+// Location returns time zone information for the user associated
+// with this timer.
+func (t *Timer) Location() (*time.Location, error) {
+	u, err := t.c.UserClient.Get(false)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error getting Toggl user")
+	}
+
+	loc, err := time.LoadLocation(u.Timezone)
+	return loc, errors.Wrap(err, "Error parsing timezone")
 }
