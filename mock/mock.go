@@ -29,3 +29,7 @@ func (s *Timer) LoggedToday() (time.Duration, error) {
 	s.LoggedTodayInvokeCount++
 	return s.LoggedTodayFn()
 }
+
+func (s *Timer) Location() (*time.Location, error) {
+	return time.UTC, nil
+}
