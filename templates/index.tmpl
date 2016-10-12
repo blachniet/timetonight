@@ -8,13 +8,16 @@
             <hr/>
             
             {{if .TimerRunning}}
-                <h1 title="Your timer is running..."
-                    style="text-align: center; margin-top:2em; margin-bottom: 2em;">
-                    <i class="fa fa-circle-o-notch fa-spin"></i>
-                    <small> Done @ </small>
-                    {{.FinishTime.Format "3:04"}}
-                    <small>{{.FinishTime.Format "MST"}}</small>
-                </h1>
+                <div style="margin-top:1.75em; margin-bottom:1.75em;">
+                    <p style="text-align:center; margin-bottom:.25em;">
+                        <i class="fa fa-circle-o-notch fa-spin"></i>&nbsp;Done @
+                    </p>
+                    <h1 title="Your timer is running..."
+                        style="text-align:center;">
+                        <time datetime="{{.FinishTime.Format "2006-01-02T15:04:05Z07:00"}}">{{.FinishTime.Format "3:04"}}
+                        <small>{{.FinishTime.Format "PM"}}</small></time>
+                    </h1>
+                </div>
                 {{if lt .Remaining 0}}
                 <div class="alert alert-warning" role="alert">
                     <i class="fa fa-warning"></i>Your timer is running, but you've reached your goal: 
