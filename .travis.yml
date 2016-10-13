@@ -1,0 +1,7 @@
+language: go
+go:
+  - 1.7
+  - tip
+script:
+  - go build -race $(go list ./... | grep -v /vendor/)
+  - go test $(go list ./... | grep -v /vendor/)
