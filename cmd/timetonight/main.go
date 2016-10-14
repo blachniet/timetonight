@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
 	"github.com/spf13/viper"
+	"github.com/stvp/rollbar"
 )
 
 func main() {
@@ -20,6 +21,8 @@ func main() {
 	viper.SetDefault("HoursPerDay", 8)
 	viper.SetDefault("TogglAPIToken", "")
 	viper.SetDefault("Port", 3000)
+	viper.SetDefault("RollbarToken", "")
+	viper.SetDefault("RollbarEnv", "development")
 
 	viper.SetConfigName("config")
 	viper.AddConfigPath("/etc/timetonight")
@@ -72,10 +75,24 @@ func main() {
 		TimePerDay:       timePerDay,
 	}
 
+	// Rollbar configuration
+	rollbar.Token = viper.GetString("RollbarToken")
+	rollbar.Environment = viper.GetString("RollbarEnv")
+
 	// Echo Setup
 	e := echo.New()
 	e.SetDebug(app.Debug)
 	e.SetRenderer(app)
+	e.SetHTTPErrorHandler(func(err error, c echo.Context) {
+		log.Printf("%+v", err)
+		if rollbar.Token != "" {
+			rollbar.Error(rollbar.ERR, err, &rollbar.Field{
+				Name: "Path",
+				Data: c.Path(),
+			})
+		}
+		e.DefaultHTTPErrorHandler(err, c)
+	})
 
 	// Echo Middleware
 	e.Pre(middleware.RemoveTrailingSlash())
@@ -87,4 +104,6 @@ func main() {
 
 	// Echo Run
 	e.Run(standard.New(fmt.Sprintf(":%v", viper.GetInt("Port"))))
+
+	rollbar.Wait()
 }

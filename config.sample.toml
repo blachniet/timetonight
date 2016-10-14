@@ -1,6 +1,8 @@
 # You can find your API token at https://toggl.com/app/profile
 TogglAPIToken = ""
 HoursPerDay = 8
+# RollbarToken = ""
+# RollbarEnv = ""
 
 Port = 3000
 Debug = false
