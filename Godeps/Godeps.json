@@ -179,6 +179,11 @@
 			"Rev": "670c42a85b2a2215949acd943cb8f11add317e3f"
 		},
 		{
+			"ImportPath": "github.com/stvp/rollbar",
+			"Comment": "v0.4.0-6-g3eb4713",
+			"Rev": "3eb4713e2655cd1be805795be31b3f85b74b05fd"
+		},
+		{
 			"ImportPath": "github.com/valyala/fasttemplate",
 			"Rev": "3b874956e03f1636d171bda64b130f9135f42cff"
 		},
