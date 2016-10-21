@@ -1,8 +1,9 @@
 FROM alpine:latest
 MAINTAINER Brian Lachniet <blachniet@gmail.com>
 
-COPY . /usr/local/bin/timetonight
-WORKDIR /usr/local/bin/timetonight
+COPY . /usr/local/timetonight
+WORKDIR /usr/local/timetonight
+ENV PATH /usr/local/timetonight:$PATH
 
 EXPOSE 3000
 CMD ["./timetonight"]
